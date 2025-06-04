@@ -29,7 +29,7 @@ public class AssetPriceService {
         }
     }
 
-    private void updateAssetPrice(Asset asset) {
+    void updateAssetPrice(Asset asset) {
         BigDecimal currentPrice = asset.getCurrentPrice();
         BigDecimal changePercent = generateRandomPriceChange();
         BigDecimal priceChange = currentPrice.multiply(changePercent);
@@ -42,7 +42,7 @@ public class AssetPriceService {
         assetRepository.save(asset);
     }
 
-    private BigDecimal generateRandomPriceChange() {
+    BigDecimal generateRandomPriceChange() {
         // Generate a random percentage between -5% and +5%
         double randomValue = random.nextDouble() * 2 - 1; // Value between -1 and 1
         return MAX_PRICE_CHANGE_PERCENT.multiply(BigDecimal.valueOf(randomValue));

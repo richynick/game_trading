@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -78,7 +79,7 @@ public class PortfolioAnalyticsService {
                         Trade::getUserId,
                         Collectors.collectingAndThen(
                                 Collectors.averagingDouble(trade -> trade.getTotalAmount().doubleValue()),
-                                avg -> BigDecimal.valueOf(avg)
+                                avg -> BigDecimal.valueOf(avg).setScale(2, RoundingMode.HALF_UP)
                         )
                 ));
     }
