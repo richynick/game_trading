@@ -17,6 +17,9 @@ public class User {
     private Integer gemCount = 0;
     private Integer rank = 0;
     private Integer totalTrades = 0;
+    private Integer currentStreak = 0;
+    private Integer longestStreak = 0;
+    private LocalDateTime lastTradeTime;
     private LocalDateTime createdAt;
 
     public User() {
@@ -45,6 +48,15 @@ public class User {
     public Integer getTotalTrades() { return totalTrades; }
     public void setTotalTrades(Integer totalTrades) { this.totalTrades = totalTrades; }
 
+    public Integer getCurrentStreak() { return currentStreak; }
+    public void setCurrentStreak(Integer currentStreak) { this.currentStreak = currentStreak; }
+
+    public Integer getLongestStreak() { return longestStreak; }
+    public void setLongestStreak(Integer longestStreak) { this.longestStreak = longestStreak; }
+
+    public LocalDateTime getLastTradeTime() { return lastTradeTime; }
+    public void setLastTradeTime(LocalDateTime lastTradeTime) { this.lastTradeTime = lastTradeTime; }
+
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
@@ -54,6 +66,19 @@ public class User {
 
     public void addGems(int gems) {
         this.gemCount += gems;
+    }
+
+    public void updateStreak() {
+        LocalDateTime now = LocalDateTime.now();
+        if (lastTradeTime != null && lastTradeTime.plusMinutes(30).isAfter(now)) {
+            currentStreak++;
+            if (currentStreak > longestStreak) {
+                longestStreak = currentStreak;
+            }
+        } else {
+            currentStreak = 1;
+        }
+        lastTradeTime = now;
     }
 
     @Override

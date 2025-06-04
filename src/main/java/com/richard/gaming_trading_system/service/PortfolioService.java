@@ -129,6 +129,13 @@ public class PortfolioService {
         // Base gem for trade
         int gemsToAward = 1;
 
+        // Update streak and award streak bonus
+        user.updateStreak();
+        int currentStreak = user.getCurrentStreak();
+        if (currentStreak >= 3) {
+            gemsToAward += currentStreak; // Award additional gems equal to streak length
+        }
+
         // Bonus gems for milestones
         int totalTrades = user.getTotalTrades();
         if (totalTrades % 10 == 0) {
