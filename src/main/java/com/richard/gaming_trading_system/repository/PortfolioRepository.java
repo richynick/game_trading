@@ -1,7 +1,7 @@
 package com.richard.gaming_trading_system.repository;
 
 import com.richard.gaming_trading_system.model.Portfolio;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,7 +10,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-@Repository
+@Component
 public class PortfolioRepository {
     private final Map<Long, Portfolio> portfolios = new ConcurrentHashMap<>();
     private final AtomicLong idGenerator = new AtomicLong(1);

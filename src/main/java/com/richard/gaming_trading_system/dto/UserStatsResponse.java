@@ -12,8 +12,7 @@ public class UserStatsResponse {
 
     public UserStatsResponse() {}
 
-    public UserStatsResponse(Long userId, String username, Integer gemCount,
-                             Integer rank, Integer totalTrades, BigDecimal portfolioValue) {
+    public UserStatsResponse(Long userId, String username, Integer gemCount, Integer rank, Integer totalTrades, BigDecimal portfolioValue) {
         this.userId = userId;
         this.username = username;
         this.gemCount = gemCount;

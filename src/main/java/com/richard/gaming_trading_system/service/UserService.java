@@ -1,12 +1,16 @@
 package com.richard.gaming_trading_system.service;
 
 import com.richard.gaming_trading_system.dto.CreateUserRequest;
+import com.richard.gaming_trading_system.dto.UserStatsResponse;
+import com.richard.gaming_trading_system.exception.UserNotFoundException;
 import com.richard.gaming_trading_system.model.User;
 import com.richard.gaming_trading_system.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserService {
@@ -20,19 +24,12 @@ public class UserService {
     @Autowired
     private RankingService rankingService;
 
-    public User createUser(CreateUserRequest request) {
-        if (userRepository.existsByUsername(request.getUsername())) {
-            throw new UserAlreadyExistsException("Username already exists: " + request.getUsername());
-        }
-
+    public User createUser(String username) {
         User user = new User();
-        user.setUsername(request.getUsername());
-        User savedUser = userRepository.save(user);
-
-        // Update rankings after creating user
-        rankingService.updateAllRankings();
-
-        return savedUser;
+        user.setUsername(username);
+        user = userRepository.save(user);
+        rankingService.updateUserRank(user);
+        return user;
     }
 
     public User getUserById(Long userId) {
@@ -47,7 +44,7 @@ public class UserService {
 
     public UserStatsResponse getUserStats(Long userId) {
         User user = getUserById(userId);
-        BigDecimal portfolioValue = portfolioService.getTotalPortfolioValue(userId);
+        BigDecimal portfolioValue = portfolioService.getPortfolioValue(userId);
 
         return new UserStatsResponse(
                 user.getUserId(),
@@ -59,13 +56,12 @@ public class UserService {
         );
     }
 
-    public void updateGemCount(Long userId, int gems) {
+    public User updateUserGems(Long userId, int gems) {
         User user = getUserById(userId);
         user.addGems(gems);
-        userRepository.save(user);
-
-        // Update rankings after gem count change
-        rankingService.updateAllRankings();
+        user = userRepository.save(user);
+        rankingService.updateUserRank(user);
+        return user;
     }
 
     public void incrementTradeCount(Long userId) {

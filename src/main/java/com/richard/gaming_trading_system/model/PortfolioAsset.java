@@ -24,6 +24,8 @@ public class PortfolioAsset {
 
     private LocalDateTime lastTraded;
 
+    private Asset asset;
+
     public PortfolioAsset() {}
 
     public PortfolioAsset(Long portfolioId, Long assetId, BigDecimal quantity, BigDecimal averagePrice) {
@@ -53,6 +55,11 @@ public class PortfolioAsset {
 
     public LocalDateTime getLastTraded() { return lastTraded; }
     public void setLastTraded(LocalDateTime lastTraded) { this.lastTraded = lastTraded; }
+
+    public Asset getAsset() { return asset; }
+    public void setAsset(Asset asset) { this.asset = asset; }
+
+    public void setPrice(BigDecimal price) { this.averagePrice = price; }
 
     @Override
     public boolean equals(Object o) {

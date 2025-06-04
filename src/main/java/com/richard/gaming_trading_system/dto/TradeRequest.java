@@ -7,38 +7,46 @@ import jakarta.validation.constraints.Positive;
 import java.math.BigDecimal;
 
 public class TradeRequest {
-    @NotNull(message = "User ID is required")
-    private Long userId;
+    @NotNull
+    private Long portfolioId;
 
-    @NotNull(message = "Asset ID is required")
+    @NotNull
     private Long assetId;
 
-    @NotNull(message = "Trade type is required")
-    private TradeType tradeType;
-
-    @NotNull(message = "Quantity is required")
-    @Positive(message = "Quantity must be positive")
+    @NotNull
+    @Positive
     private BigDecimal quantity;
+
+    @NotNull
+    @Positive
+    private BigDecimal price;
+
+    @NotNull
+    private TradeType tradeType;
 
     public TradeRequest() {}
 
-    public TradeRequest(Long userId, Long assetId, TradeType tradeType, BigDecimal quantity) {
-        this.userId = userId;
+    public TradeRequest(Long portfolioId, Long assetId, BigDecimal quantity, BigDecimal price, TradeType tradeType) {
+        this.portfolioId = portfolioId;
         this.assetId = assetId;
-        this.tradeType = tradeType;
         this.quantity = quantity;
+        this.price = price;
+        this.tradeType = tradeType;
     }
 
     // Getters and Setters
-    public Long getUserId() { return userId; }
-    public void setUserId(Long userId) { this.userId = userId; }
+    public Long getPortfolioId() { return portfolioId; }
+    public void setPortfolioId(Long portfolioId) { this.portfolioId = portfolioId; }
 
     public Long getAssetId() { return assetId; }
     public void setAssetId(Long assetId) { this.assetId = assetId; }
 
-    public TradeType getTradeType() { return tradeType; }
-    public void setTradeType(TradeType tradeType) { this.tradeType = tradeType; }
-
     public BigDecimal getQuantity() { return quantity; }
     public void setQuantity(BigDecimal quantity) { this.quantity = quantity; }
+
+    public BigDecimal getPrice() { return price; }
+    public void setPrice(BigDecimal price) { this.price = price; }
+
+    public TradeType getTradeType() { return tradeType; }
+    public void setTradeType(TradeType tradeType) { this.tradeType = tradeType; }
 }

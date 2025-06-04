@@ -31,6 +31,8 @@ public class Trade {
     private Integer gemsAwarded = 1; // Default 1 gem per trade
     private LocalDateTime tradeTimestamp;
 
+    private Portfolio portfolio;
+
     public Trade() {
         this.tradeTimestamp = LocalDateTime.now();
     }
@@ -74,6 +76,11 @@ public class Trade {
 
     public LocalDateTime getTradeTimestamp() { return tradeTimestamp; }
     public void setTradeTimestamp(LocalDateTime tradeTimestamp) { this.tradeTimestamp = tradeTimestamp; }
+
+    public Portfolio getPortfolio() { return portfolio; }
+    public void setPortfolio(Portfolio portfolio) { this.portfolio = portfolio; }
+
+    public void setTimestamp(LocalDateTime timestamp) { this.tradeTimestamp = timestamp; }
 
     @Override
     public boolean equals(Object o) {
