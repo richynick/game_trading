@@ -50,10 +50,7 @@ class AssetPriceServiceTest {
         assetPriceService.updateAssetPrices();
 
         // Verify that save was called for each asset
-        verify(assetRepository, times(2)).save(any(Asset.class));
-
-        // Verify that the prices were updated and are within the expected range
-        verify(assetRepository).save(argThat(asset -> {
+        verify(assetRepository, times(2)).save(argThat(asset -> {
             BigDecimal price = asset.getCurrentPrice();
             return price.compareTo(new BigDecimal("0.01")) >= 0 &&
                    price.compareTo(new BigDecimal("105.00")) <= 0;

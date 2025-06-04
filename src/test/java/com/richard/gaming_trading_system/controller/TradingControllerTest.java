@@ -94,7 +94,14 @@ class TradingControllerTest {
 
         // Mock service responses
         when(userService.createUser(anyString())).thenReturn(user);
-        when(userService.getUserStats(anyLong())).thenReturn(new UserStatsResponse(user));
+        when(userService.getUserStats(anyLong())).thenReturn(new UserStatsResponse(
+            user.getUserId(),
+            user.getUsername(),
+            user.getGemCount(),
+            user.getRank(),
+            user.getTotalTrades(),
+            BigDecimal.ZERO // portfolio value
+        ));
         when(portfolioService.createPortfolio(any())).thenReturn(portfolio);
         when(portfolioService.getPortfolioById(anyLong())).thenReturn(portfolio);
         when(portfolioService.getPortfoliosByUserId(anyLong())).thenReturn(Collections.singletonList(portfolio));
