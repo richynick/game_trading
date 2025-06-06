@@ -1,5 +1,6 @@
 package com.richard.gaming_trading_system.controller;
 
+import com.richard.gaming_trading_system.dto.CreateAssetRequest;
 import com.richard.gaming_trading_system.dto.CreatePortfolioRequest;
 import com.richard.gaming_trading_system.dto.TradeRequest;
 import com.richard.gaming_trading_system.dto.UserStatsResponse;
@@ -13,6 +14,11 @@ import com.richard.gaming_trading_system.service.PortfolioAnalyticsService;
 import com.richard.gaming_trading_system.service.PortfolioService;
 import com.richard.gaming_trading_system.service.RankingService;
 import com.richard.gaming_trading_system.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +30,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
+@Tag(name = "Trading System", description = "APIs for managing users, portfolios, trades, and analytics")
 public class TradingController {
 
     private UserService userService;
@@ -46,19 +53,41 @@ public class TradingController {
     }
 
     // User Management Endpoints
+    @Operation(summary = "Create a new user", description = "Creates a new user with the specified username")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "User created successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid input")
+    })
     @PostMapping("/users")
-    public ResponseEntity<User> createUser(@RequestParam String username) {
+    public ResponseEntity<User> createUser(
+            @Parameter(description = "Username for the new user") 
+            @RequestParam String username) {
         return ResponseEntity.ok(userService.createUser(username));
     }
 
+    @Operation(summary = "Get user statistics", description = "Retrieves statistics for a specific user")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "User stats retrieved successfully"),
+        @ApiResponse(responseCode = "404", description = "User not found")
+    })
     @GetMapping("/users/{userId}")
-    public ResponseEntity<UserStatsResponse> getUserStats(@PathVariable Long userId) {
+    public ResponseEntity<UserStatsResponse> getUserStats(
+            @Parameter(description = "ID of the user") 
+            @PathVariable Long userId) {
         return ResponseEntity.ok(userService.getUserStats(userId));
     }
 
     // Portfolio Management Endpoints
+    @Operation(summary = "Create a new portfolio", description = "Creates a new portfolio for a user")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Portfolio created successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid input"),
+        @ApiResponse(responseCode = "404", description = "User not found")
+    })
     @PostMapping("/portfolios")
-    public ResponseEntity<Portfolio> createPortfolio(@RequestBody CreatePortfolioRequest request) {
+    public ResponseEntity<Portfolio> createPortfolio(
+            @Parameter(description = "Portfolio creation request") 
+            @RequestBody CreatePortfolioRequest request) {
         return ResponseEntity.ok(portfolioService.createPortfolio(request));
     }
 
@@ -73,16 +102,24 @@ public class TradingController {
     }
 
     // Trading Endpoints
+    @Operation(summary = "Execute a trade", description = "Executes a buy or sell trade for an asset")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Trade executed successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid input"),
+        @ApiResponse(responseCode = "404", description = "Portfolio or asset not found"),
+        @ApiResponse(responseCode = "409", description = "Insufficient assets for sell trade")
+    })
     @PostMapping("/trade")
-    public ResponseEntity<Trade> executeTrade(@RequestBody TradeRequest request) {
-        Trade trade = portfolioService.executeTrade(
+    public ResponseEntity<Trade> executeTrade(
+            @Parameter(description = "Trade execution request") 
+            @RequestBody TradeRequest request) {
+        return ResponseEntity.ok(portfolioService.executeTrade(
             request.getPortfolioId(),
             request.getAssetId(),
             request.getQuantity(),
             request.getPrice(),
             request.getTradeType()
-        );
-        return ResponseEntity.ok(trade);
+        ));
     }
 
     // Leaderboard Endpoints
@@ -128,8 +165,15 @@ public class TradingController {
     }
 
     // Asset Management Endpoints
+    @Operation(summary = "Create a new asset", description = "Creates a new tradable asset")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Asset created successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid input")
+    })
     @PostMapping("/assets")
-    public ResponseEntity<Asset> createAsset(@RequestBody CreateAssetRequest request) {
+    public ResponseEntity<Asset> createAsset(
+            @Parameter(description = "Asset creation request") 
+            @RequestBody CreateAssetRequest request) {
         return ResponseEntity.ok(assetService.createAsset(request));
     }
 
