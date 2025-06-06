@@ -38,7 +38,7 @@ public class TradingController {
 
     // User Management Endpoints
     @PostMapping("/users")
-    public ResponseEntity<User> createUser(@RequestParam String username) {
+    public ResponseEntity<User> createUser(@RequestBody String username) {
         return ResponseEntity.ok(userService.createUser(username));
     }
 
