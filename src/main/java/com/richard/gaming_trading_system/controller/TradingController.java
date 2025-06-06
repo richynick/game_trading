@@ -3,10 +3,12 @@ package com.richard.gaming_trading_system.controller;
 import com.richard.gaming_trading_system.dto.CreatePortfolioRequest;
 import com.richard.gaming_trading_system.dto.TradeRequest;
 import com.richard.gaming_trading_system.dto.UserStatsResponse;
+import com.richard.gaming_trading_system.model.Asset;
 import com.richard.gaming_trading_system.model.Portfolio;
 import com.richard.gaming_trading_system.model.Trade;
 import com.richard.gaming_trading_system.model.TradeType;
 import com.richard.gaming_trading_system.model.User;
+import com.richard.gaming_trading_system.service.AssetService;
 import com.richard.gaming_trading_system.service.PortfolioAnalyticsService;
 import com.richard.gaming_trading_system.service.PortfolioService;
 import com.richard.gaming_trading_system.service.RankingService;
@@ -24,17 +26,24 @@ import java.util.Map;
 @RequestMapping("/api")
 public class TradingController {
 
-    @Autowired
     private UserService userService;
 
-    @Autowired
     private PortfolioService portfolioService;
 
-    @Autowired
     private RankingService rankingService;
 
-    @Autowired
     private PortfolioAnalyticsService portfolioAnalyticsService;
+
+    private AssetService assetService;
+
+    @Autowired
+    public TradingController(UserService userService, PortfolioService portfolioService, RankingService rankingService, PortfolioAnalyticsService portfolioAnalyticsService, AssetService assetService) {
+        this.userService = userService;
+        this.portfolioService = portfolioService;
+        this.rankingService = rankingService;
+        this.portfolioAnalyticsService = portfolioAnalyticsService;
+        this.assetService = assetService;
+    }
 
     // User Management Endpoints
     @PostMapping("/users")
@@ -116,5 +125,26 @@ public class TradingController {
     @GetMapping("/analytics/average-trade-size")
     public ResponseEntity<Map<Long, BigDecimal>> getAverageTradeSizeByUser() {
         return ResponseEntity.ok(portfolioAnalyticsService.getAverageTradeSizeByUser());
+    }
+
+    // Asset Management Endpoints
+    @PostMapping("/assets")
+    public ResponseEntity<Asset> createAsset(@RequestBody CreateAssetRequest request) {
+        return ResponseEntity.ok(assetService.createAsset(request));
+    }
+
+    @GetMapping("/assets")
+    public ResponseEntity<List<Asset>> getAllAssets() {
+        return ResponseEntity.ok(assetService.getAllAssets());
+    }
+
+    @GetMapping("/assets/{assetId}")
+    public ResponseEntity<Asset> getAssetById(@PathVariable Long assetId) {
+        return ResponseEntity.ok(assetService.getAssetById(assetId));
+    }
+
+    @GetMapping("/assets/symbol/{symbol}")
+    public ResponseEntity<Asset> getAssetBySymbol(@PathVariable String symbol) {
+        return ResponseEntity.ok(assetService.getAssetBySymbol(symbol));
     }
 } 
