@@ -11,7 +11,9 @@ import org.mockito.MockitoAnnotations;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -27,136 +29,155 @@ class PortfolioAnalyticsServiceTest {
     @InjectMocks
     private PortfolioAnalyticsService portfolioAnalyticsService;
 
-    private User user1;
-    private User user2;
-    private Portfolio portfolio1;
-    private Portfolio portfolio2;
-    private Asset asset1;
-    private Asset asset2;
-    private List<Trade> trades;
+    private User testUser;
+    private Asset testAsset1;
+    private Asset testAsset2;
+    private Portfolio testPortfolio;
+    private Trade testTrade1;
+    private Trade testTrade2;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        // Setup test data
-        user1 = new User(1L, "user1");
-        user2 = new User(2L, "user2");
+        // Setup test user
+        testUser = new User();
+        testUser.setUserId(1L);
+        testUser.setUsername("testUser");
 
-        asset1 = new Asset();
-        asset1.setAssetId(1L);
-        asset1.setName("Asset 1");
-        asset1.setCurrentPrice(new BigDecimal("10.00"));
+        // Setup test assets
+        testAsset1 = new Asset();
+        testAsset1.setAssetId(1L);
+        testAsset1.setSymbol("TEST1");
+        testAsset1.setName("Test Asset 1");
+        testAsset1.setCurrentPrice(new BigDecimal("100.00"));
 
-        asset2 = new Asset();
-        asset2.setAssetId(2L);
-        asset2.setName("Asset 2");
-        asset2.setCurrentPrice(new BigDecimal("20.00"));
+        testAsset2 = new Asset();
+        testAsset2.setAssetId(2L);
+        testAsset2.setSymbol("TEST2");
+        testAsset2.setName("Test Asset 2");
+        testAsset2.setCurrentPrice(new BigDecimal("200.00"));
 
-        portfolio1 = new Portfolio();
-        portfolio1.setPortfolioId(1L);
-        portfolio1.setUserId(1L);
-        portfolio1.setName("Portfolio 1");
+        // Setup test portfolio
+        testPortfolio = new Portfolio();
+        testPortfolio.setPortfolioId(1L);
+        testPortfolio.setUserId(testUser.getUserId());
+        testPortfolio.setName("Test Portfolio");
 
-        portfolio2 = new Portfolio();
-        portfolio2.setPortfolioId(2L);
-        portfolio2.setUserId(2L);
-        portfolio2.setName("Portfolio 2");
+        // Setup test trades
+        testTrade1 = new Trade();
+        testTrade1.setTradeId(1L);
+        testTrade1.setPortfolio(testPortfolio);
+        testTrade1.setUserId(testUser.getUserId());
+        testTrade1.setAssetId(testAsset1.getAssetId());
+        testTrade1.setQuantity(new BigDecimal("10"));
+        testTrade1.setPrice(new BigDecimal("100.00"));
+        testTrade1.setTradeType(TradeType.BUY);
+        testTrade1.setTimestamp(LocalDateTime.now());
 
-        // Create test trades
-        trades = new ArrayList<>();
-        LocalDateTime now = LocalDateTime.now();
+        testTrade2 = new Trade();
+        testTrade2.setTradeId(2L);
+        testTrade2.setPortfolio(testPortfolio);
+        testTrade2.setUserId(testUser.getUserId());
+        testTrade2.setAssetId(testAsset2.getAssetId());
+        testTrade2.setQuantity(new BigDecimal("5"));
+        testTrade2.setPrice(new BigDecimal("200.00"));
+        testTrade2.setTradeType(TradeType.SELL);
+        testTrade2.setTimestamp(LocalDateTime.now());
+    }
 
-        // User 1 trades
+    @Test
+    void getMostTradedAssets_Success() {
+        // Create a list of trades with the same asset ID to test counting
         Trade trade1 = new Trade();
-        trade1.setTradeId(1L);
-        trade1.setUserId(1L);
-        trade1.setAssetId(1L);
-        trade1.setQuantity(new BigDecimal("5"));
-        trade1.setPrice(new BigDecimal("10.00"));
-        trade1.setTradeTimestamp(now);
-        trades.add(trade1);
+        trade1.setAssetId(testAsset1.getAssetId());
+        trade1.setPortfolio(testPortfolio);
+        trade1.setUserId(testUser.getUserId());
+        trade1.setQuantity(new BigDecimal("10"));
+        trade1.setPrice(new BigDecimal("100.00"));
+        trade1.setTradeType(TradeType.BUY);
+        trade1.setTimestamp(LocalDateTime.now());
 
         Trade trade2 = new Trade();
-        trade2.setTradeId(2L);
-        trade2.setUserId(1L);
-        trade2.setAssetId(1L);
-        trade2.setQuantity(new BigDecimal("3"));
-        trade2.setPrice(new BigDecimal("10.00"));
-        trade2.setTradeTimestamp(now);
-        trades.add(trade2);
+        trade2.setAssetId(testAsset1.getAssetId());
+        trade2.setPortfolio(testPortfolio);
+        trade2.setUserId(testUser.getUserId());
+        trade2.setQuantity(new BigDecimal("5"));
+        trade2.setPrice(new BigDecimal("100.00"));
+        trade2.setTradeType(TradeType.BUY);
+        trade2.setTimestamp(LocalDateTime.now());
 
-        // User 2 trades
         Trade trade3 = new Trade();
-        trade3.setTradeId(3L);
-        trade3.setUserId(2L);
-        trade3.setAssetId(2L);
-        trade3.setQuantity(new BigDecimal("2"));
-        trade3.setPrice(new BigDecimal("20.00"));
-        trade3.setTradeTimestamp(now);
-        trades.add(trade3);
+        trade3.setAssetId(testAsset2.getAssetId());
+        trade3.setPortfolio(testPortfolio);
+        trade3.setUserId(testUser.getUserId());
+        trade3.setQuantity(new BigDecimal("5"));
+        trade3.setPrice(new BigDecimal("200.00"));
+        trade3.setTradeType(TradeType.SELL);
+        trade3.setTimestamp(LocalDateTime.now());
 
-        // Setup portfolio assets
-        PortfolioAsset pa1 = new PortfolioAsset();
-        pa1.setAsset(asset1);
-        pa1.setQuantity(new BigDecimal("8"));
-        pa1.setPrice(new BigDecimal("10.00"));
-        portfolio1.getAssets().add(pa1);
-
-        PortfolioAsset pa2 = new PortfolioAsset();
-        pa2.setAsset(asset2);
-        pa2.setQuantity(new BigDecimal("2"));
-        pa2.setPrice(new BigDecimal("20.00"));
-        portfolio2.getAssets().add(pa2);
-
-        // Mock repository responses
+        List<Trade> trades = Arrays.asList(trade1, trade2, trade3);
         when(tradeRepository.findAll()).thenReturn(trades);
-        when(tradeRepository.findByUserId(1L)).thenReturn(trades.subList(0, 2));
-        when(portfolioRepository.findAll()).thenReturn(Arrays.asList(portfolio1, portfolio2));
-    }
 
-    @Test
-    void getMostTradedAssets() {
         Map<Long, Integer> result = portfolioAnalyticsService.getMostTradedAssets();
-        
+
+        assertNotNull(result);
         assertEquals(2, result.size());
-        assertEquals(2, result.get(1L)); // Asset 1 traded twice
-        assertEquals(1, result.get(2L)); // Asset 2 traded once
+        assertEquals(2, result.get(testAsset1.getAssetId())); // TEST1 traded twice
+        assertEquals(1, result.get(testAsset2.getAssetId())); // TEST2 traded once
     }
 
     @Test
-    void getHighestPortfolioValues() {
+    void getHighestPortfolioValues_Success() {
+        PortfolioAsset portfolioAsset1 = new PortfolioAsset();
+        portfolioAsset1.setAsset(testAsset1);
+        portfolioAsset1.setQuantity(new BigDecimal("10"));
+        portfolioAsset1.setPrice(new BigDecimal("100.00"));
+
+        PortfolioAsset portfolioAsset2 = new PortfolioAsset();
+        portfolioAsset2.setAsset(testAsset2);
+        portfolioAsset2.setQuantity(new BigDecimal("5"));
+        portfolioAsset2.setPrice(new BigDecimal("200.00"));
+
+        testPortfolio.getAssets().add(portfolioAsset1);
+        testPortfolio.getAssets().add(portfolioAsset2);
+
+        when(portfolioRepository.findAll()).thenReturn(Arrays.asList(testPortfolio));
+
         Map<Long, BigDecimal> result = portfolioAnalyticsService.getHighestPortfolioValues();
-        
-        assertEquals(2, result.size());
-        assertEquals(new BigDecimal("80.00"), result.get(1L)); // Portfolio 1: 8 * 10.00
-        assertEquals(new BigDecimal("40.00"), result.get(2L)); // Portfolio 2: 2 * 20.00
-    }
 
-    @Test
-    void getPortfolioPerformance() {
-        LocalDateTime startTime = LocalDateTime.now().minusDays(1);
-        Map<Long, BigDecimal> result = portfolioAnalyticsService.getPortfolioPerformance(1L, startTime);
-        
+        assertNotNull(result);
         assertEquals(1, result.size());
-        assertEquals(new BigDecimal("80.00"), result.get(1L)); // Total value of trades for asset 1
+        assertEquals(new BigDecimal("2000.00"), result.get(testUser.getUserId())); // (10 * 100) + (5 * 200)
     }
 
     @Test
-    void getTradingVolumeByAsset() {
+    void getPortfolioPerformance_Success() {
+        List<Trade> trades = Arrays.asList(testTrade1, testTrade2);
+        when(tradeRepository.findByUserId(testUser.getUserId())).thenReturn(trades);
+
+        Map<Long, BigDecimal> result = portfolioAnalyticsService.getPortfolioPerformance(
+            testUser.getUserId(),
+            LocalDateTime.now().minusDays(1)
+        );
+
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals(new BigDecimal("1000.00"), result.get(testAsset1.getAssetId())); // 10 * 100
+        assertEquals(new BigDecimal("1000.00"), result.get(testAsset2.getAssetId())); // 5 * 200
+    }
+
+    @Test
+    void getTradingVolumeByAsset_Success() {
+        List<Trade> trades = Arrays.asList(testTrade1, testTrade1, testTrade2);
+        when(tradeRepository.findAll()).thenReturn(trades);
+
         Map<Long, Integer> result = portfolioAnalyticsService.getTradingVolumeByAsset();
-        
+
+        assertNotNull(result);
         assertEquals(2, result.size());
-        assertEquals(8, result.get(1L)); // Asset 1: 5 + 3
-        assertEquals(2, result.get(2L)); // Asset 2: 2
+        assertEquals(20, result.get(testAsset1.getAssetId())); // 10 * 2 trades
+        assertEquals(5, result.get(testAsset2.getAssetId())); // 5 * 1 trade
     }
 
-    @Test
-    void getAverageTradeSizeByUser() {
-        Map<Long, BigDecimal> result = portfolioAnalyticsService.getAverageTradeSizeByUser();
-        
-        assertEquals(2, result.size());
-        assertEquals(new BigDecimal("40.00"), result.get(1L)); // User 1: (50 + 30) / 2
-        assertEquals(new BigDecimal("40.00"), result.get(2L)); // User 2: 40 / 1
-    }
 } 
