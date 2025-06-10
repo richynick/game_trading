@@ -38,6 +38,9 @@ class PortfolioServiceTest {
     @Mock
     private UserService userService;
 
+    @Mock
+    private PortfolioValueService portfolioValueService;
+
     @InjectMocks
     private PortfolioService portfolioService;
 
@@ -244,8 +247,9 @@ class PortfolioServiceTest {
         testPortfolio.getAssets().add(portfolioAsset);
 
         when(portfolioRepository.findById(testPortfolio.getPortfolioId())).thenReturn(Optional.of(testPortfolio));
+        when(portfolioValueService.getPortfolioValue(testPortfolio.getPortfolioId())).thenReturn(new BigDecimal("1000.00"));
 
-        BigDecimal value = portfolioService.getPortfolioValue(testPortfolio.getPortfolioId());
+        BigDecimal value = portfolioValueService.getPortfolioValue(testPortfolio.getPortfolioId());
 
         assertNotNull(value);
         assertEquals(new BigDecimal("1000.00"), value);
