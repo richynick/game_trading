@@ -174,9 +174,4 @@ public class PortfolioService {
         // Award gems using UserService
         userService.updateUserGems(user.getUserId(), gemsToAward);
     }
-
-    public BigDecimal getPortfolioValue(Long portfolioId) {
-        Portfolio portfolio = getPortfolioById(portfolioId);
-        return portfolio.getTotalValue();
-    }
 }

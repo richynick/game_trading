@@ -5,7 +5,6 @@ import com.richard.gaming_trading_system.dto.UserStatsResponse;
 import com.richard.gaming_trading_system.exception.UserNotFoundException;
 import com.richard.gaming_trading_system.model.User;
 import com.richard.gaming_trading_system.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -18,7 +17,6 @@ public class UserService {
     private final RankingService rankingService;
     private final PortfolioValueService portfolioValueService;
 
-    @Autowired
     public UserService(
             UserRepository userRepository,
             RankingService rankingService,

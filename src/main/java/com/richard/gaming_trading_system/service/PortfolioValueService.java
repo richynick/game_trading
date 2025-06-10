@@ -19,9 +19,6 @@ public class PortfolioValueService {
     public BigDecimal getPortfolioValue(Long portfolioId) {
         Portfolio portfolio = portfolioRepository.findById(portfolioId)
                 .orElseThrow(() -> new PortfolioNotFoundException("Portfolio not found: " + portfolioId));
-
-        return portfolio.getAssets().stream()
-                .map(asset -> asset.getQuantity().multiply(asset.getAsset().getCurrentPrice()))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        return portfolio.getTotalValue();
     }
 } 
