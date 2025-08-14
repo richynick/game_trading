@@ -28,7 +28,7 @@ jobs:
         distribution: 'temurin'
         cache: maven
     - name: Build with Maven
-      run: mvn clean install -DskipTests=true
+      run: mvn -B package --file pom.xml -DskipTests=true
 
     - name: login to DockerHub
       uses: docker/login-action@v2
@@ -44,3 +44,27 @@ jobs:
         tags: |
           richardnick007/gametrade:latest
           richardnick007/gametrade:${{ github.sha }}
+
+  deploy:
+
+    runs-on: self-hosted
+
+    steps:
+    - name: Check docker installation
+      run: |
+        if | [ -x "$(command -v docker)" ]; then
+          echo "Docker is installed"
+        else
+          echo "Docker is not installed"
+          exit 1
+        fi
+    - name: pull image from DockerHub
+      run: sudo docker pull richardnick007/gametrade:latest
+
+    - name: delete existing container
+      run: |
+        if ["$(sudo docker ps -aq -f name=gametradingsystem:v1.1)" ]; then
+          sudo docker rm -f gametradingsystem:v1.1
+        fi
+    - name: run demo container
+      run: sudo docker run -p 8080:8080 gametradingsystem:v1.1
