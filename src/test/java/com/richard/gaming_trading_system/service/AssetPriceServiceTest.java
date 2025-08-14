@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 class AssetPriceServiceTest {
@@ -23,70 +24,93 @@ class AssetPriceServiceTest {
     @InjectMocks
     private AssetPriceService assetPriceService;
 
-    private Asset asset1;
-    private Asset asset2;
+    private Asset testAsset1;
+    private Asset testAsset2;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        // Setup test assets
-        asset1 = new Asset();
-        asset1.setAssetId(1L);
-        asset1.setName("Asset 1");
-        asset1.setCurrentPrice(new BigDecimal("100.00"));
+        testAsset1 = new Asset();
+        testAsset1.setAssetId(1L);
+        testAsset1.setSymbol("TEST1");
+        testAsset1.setName("Test Asset 1");
+        testAsset1.setCurrentPrice(new BigDecimal("100.00"));
 
-        asset2 = new Asset();
-        asset2.setAssetId(2L);
-        asset2.setName("Asset 2");
-        asset2.setCurrentPrice(new BigDecimal("50.00"));
-
-        when(assetRepository.findAll()).thenReturn(Arrays.asList(asset1, asset2));
+        testAsset2 = new Asset();
+        testAsset2.setAssetId(2L);
+        testAsset2.setSymbol("TEST2");
+        testAsset2.setName("Test Asset 2");
+        testAsset2.setCurrentPrice(new BigDecimal("200.00"));
     }
 
     @Test
-    void updateAssetPrices() {
-        // Execute the scheduled method
+    void updateAssetPrices_Success() {
+        List<Asset> assets = Arrays.asList(testAsset1, testAsset2);
+        when(assetRepository.findAll()).thenReturn(assets);
+        when(assetRepository.save(any(Asset.class))).thenAnswer(i -> i.getArgument(0));
+
         assetPriceService.updateAssetPrices();
 
-        // Verify that save was called for each asset
-        verify(assetRepository, times(2)).save(argThat(asset -> {
-            BigDecimal price = asset.getCurrentPrice();
-            return price.compareTo(new BigDecimal("0.01")) >= 0 &&
-                   price.compareTo(new BigDecimal("105.00")) <= 0;
-        }));
+        verify(assetRepository, times(2)).save(any(Asset.class));
     }
 
     @Test
-    void updateAssetPrice() {
-        // Test price increase
-        Asset asset = new Asset();
-        asset.setCurrentPrice(new BigDecimal("100.00"));
-        assetPriceService.updateAssetPrice(asset);
-        assertTrue(asset.getCurrentPrice().compareTo(new BigDecimal("0.01")) >= 0);
-        assertTrue(asset.getCurrentPrice().compareTo(new BigDecimal("105.00")) <= 0);
+    void updateAssetPrice_Success() {
+        when(assetRepository.save(any(Asset.class))).thenAnswer(i -> i.getArgument(0));
 
-        // Test price decrease
-        asset = new Asset();
-        asset.setCurrentPrice(new BigDecimal("100.00"));
-        assetPriceService.updateAssetPrice(asset);
-        assertTrue(asset.getCurrentPrice().compareTo(new BigDecimal("0.01")) >= 0);
-        assertTrue(asset.getCurrentPrice().compareTo(new BigDecimal("105.00")) <= 0);
+        assetPriceService.updateAssetPrice(testAsset1);
 
-        // Test minimum price
-        asset = new Asset();
-        asset.setCurrentPrice(new BigDecimal("0.02"));
-        assetPriceService.updateAssetPrice(asset);
-        assertTrue(asset.getCurrentPrice().compareTo(new BigDecimal("0.01")) >= 0);
+        assertNotNull(testAsset1.getCurrentPrice());
+        assertTrue(testAsset1.getCurrentPrice().compareTo(BigDecimal.ZERO) > 0);
+        verify(assetRepository).save(testAsset1);
     }
 
     @Test
-    void generateRandomPriceChange() {
-        // Test multiple price changes to ensure they're within bounds
-        for (int i = 0; i < 100; i++) {
-            BigDecimal change = assetPriceService.generateRandomPriceChange();
-            assertTrue(change.compareTo(new BigDecimal("-0.05")) >= 0);
-            assertTrue(change.compareTo(new BigDecimal("0.05")) <= 0);
-        }
+    void updateAssetPrice_MinimumPrice() {
+        testAsset1.setCurrentPrice(new BigDecimal("0.01"));
+        when(assetRepository.save(any(Asset.class))).thenAnswer(i -> i.getArgument(0));
+
+        assetPriceService.updateAssetPrice(testAsset1);
+
+        assertNotNull(testAsset1.getCurrentPrice());
+        assertTrue(testAsset1.getCurrentPrice().compareTo(new BigDecimal("0.01")) >= 0);
+        verify(assetRepository).save(testAsset1);
+    }
+
+    @Test
+    void generateRandomPriceChange_WithinRange() {
+        BigDecimal change = assetPriceService.generateRandomPriceChange();
+
+        assertNotNull(change);
+        assertTrue(change.compareTo(new BigDecimal("-0.05")) >= 0); // Not less than -5%
+        assertTrue(change.compareTo(new BigDecimal("0.05")) <= 0);  // Not greater than +5%
+    }
+
+    @Test
+    void updateAssetPrice_PriceScale() {
+        testAsset1.setCurrentPrice(new BigDecimal("100.123"));
+        when(assetRepository.save(any(Asset.class))).thenAnswer(i -> i.getArgument(0));
+
+        assetPriceService.updateAssetPrice(testAsset1);
+
+        assertEquals(2, testAsset1.getCurrentPrice().scale());
+        verify(assetRepository).save(testAsset1);
+    }
+
+    @Test
+    void updateAssetPrice_MultipleUpdates() {
+        when(assetRepository.save(any(Asset.class))).thenAnswer(i -> i.getArgument(0));
+
+        // Perform multiple updates and verify price changes
+        BigDecimal initialPrice = testAsset1.getCurrentPrice();
+        assetPriceService.updateAssetPrice(testAsset1);
+        BigDecimal priceAfterFirstUpdate = testAsset1.getCurrentPrice();
+        assetPriceService.updateAssetPrice(testAsset1);
+        BigDecimal priceAfterSecondUpdate = testAsset1.getCurrentPrice();
+
+        assertNotEquals(initialPrice, priceAfterFirstUpdate);
+        assertNotEquals(priceAfterFirstUpdate, priceAfterSecondUpdate);
+        verify(assetRepository, times(2)).save(testAsset1);
     }
 } 

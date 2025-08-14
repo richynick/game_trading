@@ -3,6 +3,7 @@ package com.richard.gaming_trading_system.service;
 import com.richard.gaming_trading_system.dto.CreatePortfolioRequest;
 import com.richard.gaming_trading_system.exception.AssetNotFoundException;
 import com.richard.gaming_trading_system.exception.InsufficientAssetException;
+import com.richard.gaming_trading_system.exception.InsufficientFundsException;
 import com.richard.gaming_trading_system.exception.PortfolioNotFoundException;
 import com.richard.gaming_trading_system.exception.UserNotFoundException;
 import com.richard.gaming_trading_system.model.*;
@@ -20,14 +21,22 @@ import java.util.Optional;
 @Service
 public class PortfolioService {
 
-    @Autowired
-    private PortfolioRepository portfolioRepository;
+    private final PortfolioRepository portfolioRepository;
+    private final UserRepository userRepository;
+    private final AssetRepository assetRepository;
+    private final UserService userService;
 
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private AssetRepository assetRepository;
+    public PortfolioService(
+            PortfolioRepository portfolioRepository,
+            UserRepository userRepository,
+            AssetRepository assetRepository,
+            UserService userService) {
+        this.portfolioRepository = portfolioRepository;
+        this.userRepository = userRepository;
+        this.assetRepository = assetRepository;
+        this.userService = userService;
+    }
 
     public Portfolio createPortfolio(CreatePortfolioRequest request) {
         // Verify user exists
@@ -101,11 +110,28 @@ public class PortfolioService {
         User user = userRepository.findById(portfolio.getUserId())
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
+        // Calculate total cost of the trade
+        BigDecimal totalCost = quantity.multiply(price);
+
+        // For BUY trades, check if user has enough gems
+        if (tradeType == TradeType.BUY) {
+            if (user.getGemCount() < totalCost.intValue()) {
+                throw new InsufficientFundsException(
+                    String.format("Insufficient funds. Required: %d gems, Available: %d gems",
+                        totalCost.intValue(), user.getGemCount())
+                );
+            }
+            // Deduct gems for the purchase using UserService
+            userService.updateUserGems(user.getUserId(), -totalCost.intValue());
+        }
+
         // Execute trade based on type
         if (tradeType == TradeType.BUY) {
             portfolio = addAssetToPortfolio(portfolioId, assetId, quantity, price);
         } else {
             portfolio = removeAssetFromPortfolio(portfolioId, assetId, quantity);
+            // Add gems for the sale using UserService
+            userService.updateUserGems(user.getUserId(), totalCost.intValue());
         }
 
         // Create trade record
@@ -116,9 +142,10 @@ public class PortfolioService {
         trade.setPrice(price);
         trade.setTradeType(tradeType);
         trade.setTimestamp(LocalDateTime.now());
+        trade.setUserId(user.getUserId());
 
         // Update user stats and award gems
-        user.incrementTrades();
+        userService.incrementTradeCount(user.getUserId());
         awardGemsForTrade(user);
 
         userRepository.save(user);
@@ -144,11 +171,7 @@ public class PortfolioService {
             gemsToAward += 5;  // 5 trades milestone
         }
 
-        user.addGems(gemsToAward);
-    }
-
-    public BigDecimal getPortfolioValue(Long portfolioId) {
-        Portfolio portfolio = getPortfolioById(portfolioId);
-        return portfolio.getTotalValue();
+        // Award gems using UserService
+        userService.updateUserGems(user.getUserId(), gemsToAward);
     }
 }
