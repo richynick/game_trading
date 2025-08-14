@@ -1,12 +1,12 @@
 package com.richard.gaming_trading_system.controller;
 
+import com.richard.gaming_trading_system.dto.CreateAssetRequest;
 import com.richard.gaming_trading_system.dto.CreatePortfolioRequest;
 import com.richard.gaming_trading_system.dto.TradeRequest;
 import com.richard.gaming_trading_system.dto.UserStatsResponse;
 import com.richard.gaming_trading_system.model.Asset;
 import com.richard.gaming_trading_system.model.Portfolio;
 import com.richard.gaming_trading_system.model.Trade;
-import com.richard.gaming_trading_system.model.TradeType;
 import com.richard.gaming_trading_system.model.User;
 import com.richard.gaming_trading_system.service.AssetService;
 import com.richard.gaming_trading_system.service.PortfolioAnalyticsService;
@@ -47,7 +47,7 @@ public class TradingController {
 
     // User Management Endpoints
     @PostMapping("/users")
-    public ResponseEntity<User> createUser(@RequestBody String username) {
+    public ResponseEntity<User> createUser(@RequestParam String username) {
         return ResponseEntity.ok(userService.createUser(username));
     }
 
